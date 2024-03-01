@@ -8,9 +8,12 @@ class Frame
     @is_last_frame = is_last_frame
   end
 
+  def pins
+    @shots.map(&:pins)
+  end
+
   def score(index, all_frames)
-    base_score = @shots.sum(&:pins)
-    base_score = adjust_score_for_last_frame(base_score)
+    base_score = @is_last_frame ? calc_base_score_for_last : calc_base_score
     bonus = calculate_bonus(index, all_frames)
     base_score + bonus
   end
@@ -20,16 +23,21 @@ class Frame
   end
 
   def spare?
-    !strike? && @shots[0..1].sum(&:pins) == 10
+    !strike? && pins[0..1].sum == 10
   end
 
   private
 
-  def adjust_score_for_last_frame(base_score)
-    if @is_last_frame && @shots[0].strike?
-      base_score -= @shots[1..].sum(&:pins)
+  def calc_base_score
+    pins.sum
+  end
+
+  def calc_base_score_for_last
+    base_score = pins.sum
+    if @is_last_frame && strike?
+      base_score -= pins[1..].sum
     elsif @is_last_frame && (@shots.size > 2)
-      base_score -= @shots[2..].sum(&:pins)
+      base_score -= pins[2..].sum
     end
     base_score
   end
@@ -51,7 +59,7 @@ class Frame
   end
 
   def last_frame_strike_bonus
-    @shots[1..2].sum(&:pins)
+    pins[1..2].sum
   end
 
   def normal_frame_strike_bonus(index, all_frames)
