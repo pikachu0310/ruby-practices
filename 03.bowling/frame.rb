@@ -9,7 +9,7 @@ class Frame
   end
 
   def pins
-    @shots.map(&:pins)
+    @shots.map(&:pin)
   end
 
   def score(index, all_frames)
@@ -44,7 +44,7 @@ class Frame
 
   def calculate_bonus(index, all_frames)
     if strike?
-      strike_bonus(index, all_frames)
+      calculate_strike_bonus(index, all_frames)
     elsif spare?
       spare_bonus(index, all_frames)
     else
@@ -52,19 +52,13 @@ class Frame
     end
   end
 
-  def strike_bonus(index, all_frames)
-    return last_frame_strike_bonus if @is_last_frame
-
-    normal_frame_strike_bonus(index, all_frames)
-  end
-
-  def last_frame_strike_bonus
-    pins[1..2].sum
-  end
-
-  def normal_frame_strike_bonus(index, all_frames)
-    next_shots = (all_frames[index + 1]&.shots || []) + (all_frames[index + 2]&.shots || [])
-    next_shots[0..1].sum(&:pins)
+  def calculate_strike_bonus(index, all_frames)
+    if @is_last_frame
+      pins[1..2].sum
+    else
+      next_shots = all_frames[index + 1].shots&.+ all_frames[index + 2]&.shots || []
+      next_shots[0..1].sum(&:pin)
+    end
   end
 
   def spare_bonus(index, all_frames)
@@ -74,10 +68,10 @@ class Frame
   end
 
   def last_frame_spare_bonus
-    @shots[2]&.pins || 0
+    @shots[2]&.pin || 0
   end
 
   def normal_frame_spare_bonus(index, all_frames)
-    all_frames[index + 1]&.shots&.first&.pins || 0
+    all_frames[index + 1]&.shots&.first&.pin || 0
   end
 end

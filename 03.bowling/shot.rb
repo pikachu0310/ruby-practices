@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 class Shot
-  attr_reader :pins
+  attr_reader :pin
 
   def initialize(mark)
-    @pins = mark == 'X' ? 10 : mark.to_i
+    @pin = mark == 'X' ? 10 : mark.to_i
   end
 
   def strike?
-    @pins == 10
+    @pin == 10
   end
 end
