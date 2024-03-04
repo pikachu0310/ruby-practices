@@ -21,7 +21,6 @@ class Game
       end
     end
     # 最後のフレームは残りのすべてのshotsを使用
-    frames << Frame.new(shots, is_last_frame: true)
-    frames
+    [*frames, Frame.new(shots, is_last_frame: true)]
   end
 end
