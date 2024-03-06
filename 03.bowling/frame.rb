@@ -13,8 +13,7 @@ class Frame
   end
 
   def score(index, all_frames)
-    base_score = calc_base_score
-    base_score + calculate_bonus(index, all_frames)
+    pins.sum + calc_bonus(index, all_frames)
   end
 
   def strike?
@@ -27,21 +26,17 @@ class Frame
 
   private
 
-  def calc_base_score
-    pins.sum
-  end
-
-  def calculate_bonus(index, all_frames)
+  def calc_bonus(index, all_frames)
     if strike?
-      calculate_strike_bonus(index, all_frames)
+      calc_strike_bonus(index, all_frames)
     elsif spare?
-      spare_bonus(index, all_frames)
+      calc_spare_bonus(index, all_frames)
     else
       0
     end
   end
 
-  def calculate_strike_bonus(index, all_frames)
+  def calc_strike_bonus(index, all_frames)
     if @is_last_frame
       0
     else
@@ -50,9 +45,9 @@ class Frame
     end
   end
 
-  def spare_bonus(index, all_frames)
+  def calc_spare_bonus(index, all_frames)
     return 0 if @is_last_frame
 
-    all_frames[index + 1]&.shots&.first&.pin || 0
+    all_frames[index + 1].shots.first.pin || 0
   end
 end
