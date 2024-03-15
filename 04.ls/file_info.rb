@@ -1,15 +1,23 @@
 # frozen_string_literal: true
 
 class FileInfo
-  attr_reader :path
+  attr_reader :path, :stat
 
   def initialize(path)
     @path = path
+    @stat = File::Stat.new(path)
   end
 
-  def details
-    stat = File::Stat.new(path)
-    "#{permissions(stat)} #{stat.nlink} #{stat.uid} #{stat.gid} #{stat.size} #{stat.mtime} #{File.basename(path)}"
+  def details(widths)
+    mode = format_permissions(@stat.mode).ljust(widths[:mode])
+    nlink = @stat.nlink.to_s.rjust(widths[:nlink])
+    owner = Etc.getpwuid(@stat.uid).name.ljust(widths[:owner])
+    group = Etc.getgrgid(@stat.gid).name.ljust(widths[:group])
+    size = @stat.size.to_s.rjust(widths[:size])
+    mtime = @stat.mtime.strftime('%b %e %H:%M').ljust(widths[:mtime])
+    filename = File.basename(@path).ljust(widths[:filename])
+
+    "#{mode} #{nlink} #{owner} #{group} #{size} #{mtime} #{filename}"
   end
 
   private
