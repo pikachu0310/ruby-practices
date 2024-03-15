@@ -20,11 +20,11 @@ class Frame
     @shots.first.strike?
   end
 
+  private
+
   def spare?
     !strike? && pins[0..1].sum == 10
   end
-
-  private
 
   def calc_bonus(index, all_frames)
     if strike?
@@ -46,8 +46,6 @@ class Frame
   end
 
   def calc_spare_bonus(index, all_frames)
-    return 0 if @is_last_frame
-
-    all_frames[index + 1].shots.first.pin || 0
+    @is_last_frame ? 0 : all_frames[index + 1].shots.first.pin
   end
 end
