@@ -14,9 +14,20 @@ class FileInfo
 
   private
 
-  def permissions(stat)
-    mode = stat.mode.to_s(8)[-3, 3]
-    mode.chars.map { |char| permission_char(char) }.join
+  def format_permissions(mode)
+    file_type = case mode & 0o170000
+                when 0o040000 then 'd'
+                when 0o020000 then 'c'
+                when 0o060000 then 'b'
+                when 0o100000 then '-'
+                when 0o120000 then 'l'
+                when 0o010000 then 'p'
+                when 0o140000 then 's'
+                else '?'
+                end
+    perms = mode.to_s(8)[-3, 3]
+    readable_perms = perms.chars.map { |char| permission_char(char) }.join
+    file_type + readable_perms
   end
 
   def permission_char(char)
