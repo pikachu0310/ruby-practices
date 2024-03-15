@@ -64,6 +64,9 @@ class LsCommand
   end
 
   def print_columns(columns)
+    max_size = columns.map(&:size).max
+    columns.each { |column| column.fill(nil, column.size...max_size) }
+
     column_widths = columns.map do |column|
       column.compact.max_by(&:length).length + 2
     end
