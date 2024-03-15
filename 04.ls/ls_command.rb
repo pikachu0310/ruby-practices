@@ -7,64 +7,72 @@ require_relative 'file_info'
 
 class LsCommand
   def initialize
-    @options = {}
-    parse_options
-    @files = DirectoryScanner.new(@options).scan(@directory)
-  end
-
-  def parse_options
-    OptionParser.new do |opts|
-      opts.on('-a', '--all') { |v| @options[:a] = v }
-      opts.on('-r', '--reverse') { |v| @options[:r] = v }
-      opts.on('-l') { |v| @options[:l] = v }
-      opts.banner = 'Usage: ls.rb [options] [directory]'
-    end.parse!
-
+    @options = parse_options
     @directory = ARGV.empty? ? '.' : ARGV[0]
+    @files = DirectoryScanner.new(@options).scan(@directory)
   end
 
   def run
     if @options[:l]
-      print_detailed_files(@files)
+      print_detailed_files
     else
-      print_files_in_columns(@files.map { |file| File.basename(file.path) })
+      print_files_in_columns
     end
   end
 
   private
 
-  def print_files_in_columns(paths)
-    columns = 3
-    rows = (paths.length / columns.to_f).ceil
-    paths = paths.each_slice(rows).to_a
-    paths.last.fill(nil, paths.last.length...rows) if paths.last.length < rows
+  def parse_options
+    options = {}
+    OptionParser.new do |opts|
+      opts.on('-a', '--all') { options[:a] = true }
+      opts.on('-r', '--reverse') { options[:r] = true }
+      opts.on('-l') { options[:l] = true }
+      opts.banner = 'Usage: ls.rb [options] [directory]'
+    end.parse!
+    options
+  end
 
-    # 各列の最大幅を計算
-    column_widths = paths.map do |column|
-      column.compact.max_by(&:length).length + 2 # 最長ファイル名 + スペース2
-    end
-
-    paths.transpose.each do |row|
-      row.each_with_index do |file, index|
-        file ||= '' # nilの場合は空文字列に置き換え
-        printf "%-#{column_widths[index]}s", file
-      end
-      puts
+  def print_detailed_files
+    widths = calculate_widths(@files)
+    @files.each do |file|
+      puts file.details(widths)
     end
   end
 
-  def print_detailed_files(files)
-    widths = {
-      mode: 10, # "-rwxr-xr-x"
+  def calculate_widths(files)
+    {
+      mode: 10, # "-rwxr-xr-x".length
       nlink: files.map { |f| f.stat.nlink.to_s.length }.max,
-      owner: files.map { |f| Etc.getpwuid(f.stat.uid).name.size }.max,
-      group: files.map { |f| Etc.getgrgid(f.stat.gid).name.size }.max,
-      size: files.map { |f| f.stat.size.to_s.size }.max,
-      mtime: 12, # "Dec 20 12:45"
-      filename: files.map { |f| File.basename(f.path).size }.max
+      owner: files.map { |f| Etc.getpwuid(f.stat.uid).name.length }.max,
+      group: files.map { |f| Etc.getgrgid(f.stat.gid).name.length }.max,
+      size: files.map { |f| f.stat.size.to_s.length }.max,
+      mtime: 12, # "Mar 10 12:34".length
+      filename: files.map { |f| File.basename(f.path).length }.max
     }
-    files.each do |file|
-      puts file.details(widths)
+  end
+
+  def print_files_in_columns
+    paths = @files.map { |file| File.basename(file.path) }
+    columns = calculate_columns(paths)
+    print_columns(columns)
+  end
+
+  def calculate_columns(paths, columns = 3)
+    rows = (paths.length.to_f / columns).ceil
+    paths.each_slice(rows).to_a
+  end
+
+  def print_columns(columns)
+    column_widths = columns.map do |column|
+      column.compact.max_by(&:length).length + 2
+    end
+
+    columns.transpose.each do |row|
+      row.each_with_index do |file, index|
+        printf "%-#{column_widths[index]}s", (file || '')
+      end
+      puts
     end
   end
 end
