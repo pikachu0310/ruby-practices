@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'optparse'
+require 'etc'
 require_relative 'directory_scanner'
 require_relative 'file_info'
 
@@ -16,7 +17,10 @@ class LsCommand
       opts.on('-a', '--all') { |v| @options[:a] = v }
       opts.on('-r', '--reverse') { |v| @options[:r] = v }
       opts.on('-l') { |v| @options[:l] = v }
+      opts.banner = 'Usage: ls.rb [options] [directory]'
     end.parse!
+
+    @directory = ARGV.empty? ? '.' : ARGV[0]
   end
 
   def run
