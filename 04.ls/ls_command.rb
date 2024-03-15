@@ -7,6 +7,7 @@ require_relative 'file_info'
 class LsCommand
   def initialize
     @options = {}
+    parse_options
   end
 
   def parse_options
@@ -18,7 +19,6 @@ class LsCommand
   end
 
   def run
-    parse_options
     scanner = DirectoryScanner.new(@options)
     files = scanner.scan
     if @options[:l]
