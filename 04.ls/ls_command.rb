@@ -43,18 +43,18 @@ class LsCommand
   def calculate_widths(files)
     {
       mode: 10, # "-rwxr-xr-x".length
-      nlink: files.map { |f| f.stat.nlink.to_s.length }.max,
-      owner: files.map { |f| Etc.getpwuid(f.stat.uid).name.length }.max,
-      group: files.map { |f| Etc.getgrgid(f.stat.gid).name.length }.max,
-      size: files.map { |f| f.stat.size.to_s.length }.max,
+      nlink: files.map { |f| f.nlink_str.length }.max,
+      owner: files.map { |f| f.owner_name.length }.max,
+      group: files.map { |f| f.group_name.length }.max,
+      size: files.map { |f| f.size_str.length }.max,
       mtime: 12, # "Mar 10 12:34".length
       filename: files.map { |f| File.basename(f.path).length }.max
     }
   end
 
   def print_files_in_columns
-    paths = @files.map { |file| File.basename(file.path) }
-    columns = calculate_columns(paths)
+    filenames = @files.map(&:filename)
+    columns = calculate_columns(filenames)
     print_columns(columns)
   end
 
